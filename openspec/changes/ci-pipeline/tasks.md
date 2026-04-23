@@ -20,7 +20,7 @@ Total: 5 tasks. Expected effort: 1–2 hours.
   2. `actions/setup-go@v5` with `go-version: '1.26'` and `cache: true` (built-in module cache via `go.sum`)
   3. `go mod download`
   4. `go vet ./...`
-  5. Install staticcheck at the pinned version via `go install honnef.co/go/tools/cmd/staticcheck@<pinned>`, then `staticcheck ./...`
+  5. Install staticcheck at the pinned version via `go install honnef.co/go/tools/cmd/staticcheck@v0.7.0`, then `staticcheck ./...`
   6. `go test ./... -race -count=1`
   7. `go build ./...`
   Pin the staticcheck version (no `@latest`). Use `GOTOOLCHAIN=local` to prevent silent toolchain upgrades.
