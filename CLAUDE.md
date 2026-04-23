@@ -26,7 +26,7 @@ In-flight OpenSpec changes live in `openspec/changes/<slug>/`. Archived ones are
 
 ## Tech stack (locked for v0.1)
 
-- Go 1.23+ monolith deployed on Fly.io
+- Go 1.26+ monolith deployed on Fly.io
 - Postgres (Fly.io managed) as the only datastore; no Redis
 - `chi` router, `sqlx`, River queue, goose migrations, stdlib `log/slog`
 - React + Tailwind dashboard on Cloudflare Pages
