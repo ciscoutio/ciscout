@@ -29,7 +29,7 @@ Total: 11 tasks. Expected effort: 4–6 hours of focused work.
 
 ### Boilerplate
 
-- [ ] `@haiku` Write `.gitignore`: Go build artifacts, IDE files (`.idea/`, `.vscode/`), env files (`.env`, `.env.local`), macOS/Linux/Windows junk, `node_modules/`, `dist/`, `coverage.out`, test binaries.
+- [ ] `@haiku` Write `.gitignore`: Go build artifacts, IDE files (`.idea/`, `.vscode/`), env files (`.env`, `.env.local`), macOS/Linux/Windows junk, `node_modules/`, `dist/`, `coverage.out`, test binaries, and `.claude/settings.local.json` (user-local Claude Code permissions — the rest of `.claude/` may be committed as team tooling).
 
 - [ ] `@haiku` Write `.env.example` with every env var the config reads, each commented with purpose and example value. Include a warning header: "# Copy to .env.local. Never commit .env.local."
 
