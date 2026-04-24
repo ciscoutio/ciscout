@@ -9,6 +9,22 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ciscout
+          POSTGRES_PASSWORD: ciscout
+          POSTGRES_DB: ciscout
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ciscout"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
 
@@ -28,5 +44,7 @@ jobs:
           GOTOOLCHAIN: local
 
       - run: go test ./... -race -count=1
+        env:
+          DATABASE_URL: postgres://ciscout:ciscout@localhost:5432/ciscout?sslmode=disable
 
       - run: go build ./...

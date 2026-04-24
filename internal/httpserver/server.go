@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -9,16 +10,17 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/jmoiron/sqlx"
 
 	"github.com/ciscoutio/ciscout/internal/config"
 )
 
-func New(cfg *config.Config) *http.Server {
+func New(cfg *config.Config, db *sqlx.DB) *http.Server {
 	r := chi.NewRouter()
 	r.Use(slogMiddleware)
 
 	r.Get("/healthz", healthz)
-	r.Get("/readyz", readyz)
+	r.Get("/readyz", readyzHandler(db))
 
 	return &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Port),
@@ -35,10 +37,22 @@ func healthz(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }
 
-func readyz(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"status": "ready"})
+func readyzHandler(db *sqlx.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx, cancel := context.WithTimeout(r.Context(), 1*time.Second)
+		defer cancel()
+
+		if err := db.PingContext(ctx); err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusServiceUnavailable)
+			json.NewEncoder(w).Encode(map[string]string{"status": "unavailable"})
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]string{"status": "ready"})
+	}
 }
 
 func slogMiddleware(next http.Handler) http.Handler {
