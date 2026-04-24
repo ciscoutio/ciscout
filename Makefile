@@ -1,4 +1,4 @@
-.PHONY: help dev build test fmt vet tidy lint clean
+.PHONY: help dev build test fmt vet tidy lint clean db-up db-down db-reset db-migrate db-migrate-new
 
 help: ## Show available targets
 	@grep -E '^[a-z]+:.*?## ' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
@@ -28,3 +28,24 @@ lint: ## Run staticcheck if installed
 clean: ## Remove build artifacts
 	rm -rf bin/
 	go clean -testcache
+
+db-up: ## Start Postgres container and wait until healthy
+	docker compose up -d --wait postgres
+
+db-down: ## Stop Postgres container
+	docker compose down
+
+db-reset: ## Reset database (remove volume and recreate)
+	docker compose down -v
+	$(MAKE) db-up db-migrate
+
+GOOSE := $(shell command -v goose 2>/dev/null || echo $(shell go env GOPATH)/bin/goose)
+
+db-migrate: ## Apply database migrations
+	@test -x "$(GOOSE)" || (echo "goose not found; install with: go install github.com/pressly/goose/v3/cmd/goose@latest" && exit 1)
+	$(GOOSE) -dir db/migrations postgres "$$DATABASE_URL" up
+
+db-migrate-new: ## Create new migration (usage: make db-migrate-new NAME=migration_name)
+	@test -x "$(GOOSE)" || (echo "goose not found; install with: go install github.com/pressly/goose/v3/cmd/goose@latest" && exit 1)
+	@test -n "$(NAME)" || (echo "NAME not provided; usage: make db-migrate-new NAME=migration_name" && exit 1)
+	$(GOOSE) -dir db/migrations create $(NAME) sql

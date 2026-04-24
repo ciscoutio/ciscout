@@ -12,6 +12,7 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/ciscoutio/ciscout/internal/config"
+	"github.com/ciscoutio/ciscout/internal/db"
 	"github.com/ciscoutio/ciscout/internal/httpserver"
 )
 
@@ -27,7 +28,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	srv := httpserver.New(cfg)
+	ctx := context.Background()
+	database, err := db.New(ctx, cfg.DatabaseURL)
+	if err != nil {
+		slog.Error("database", "error", err)
+		os.Exit(1)
+	}
+	defer database.Close()
+
+	srv := httpserver.New(cfg, database)
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
